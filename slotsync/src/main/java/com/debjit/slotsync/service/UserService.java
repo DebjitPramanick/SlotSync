@@ -1,5 +1,7 @@
 package com.debjit.slotsync.service;
 
+import java.util.Date;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -22,6 +24,32 @@ public class UserService {
             return convertToUserDTO(user);
         } catch (Exception e) {
             throw e;
+        }
+    }
+
+    public UserDTO getUserByEmail(String email) throws Exception {
+        try {
+            User user = userRepository.findOneByEmail(email);
+            if (user == null) {
+                return null;
+            }
+            return convertToUserDTO(user);
+        } catch (Exception e) {
+            throw e;
+        }
+    }
+
+    public UserDTO createUser(UserDTO userDTO) throws Exception {
+        try {
+            User user = new User();
+            user.setEmail(userDTO.getEmail());
+            user.setPassword(userDTO.getPassword());
+            user.setName(userDTO.getName());
+            user.setCreatedAt(new Date(System.currentTimeMillis()));
+            user = userRepository.save(user);
+            return convertToUserDTO(user);
+        } catch (Exception e) {
+            throw new Exception("Failed to create user.");
         }
     }
 

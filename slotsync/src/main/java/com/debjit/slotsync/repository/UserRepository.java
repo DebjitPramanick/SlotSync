@@ -7,5 +7,5 @@ import com.debjit.slotsync.model.User;
 
 @Repository
 public interface UserRepository extends MongoRepository<User, String> {
-
+    public User findOneByEmail(String email);
 }
