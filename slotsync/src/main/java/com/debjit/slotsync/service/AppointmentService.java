@@ -1,12 +1,14 @@
 package com.debjit.slotsync.service;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.debjit.slotsync.dto.AppointmentDTO;
+import com.debjit.slotsync.enums.AppointmentStatus;
 import com.debjit.slotsync.model.Appointment;
 import com.debjit.slotsync.repository.AppointmentRepository;
 
@@ -53,8 +55,36 @@ public class AppointmentService {
         }
     }
 
+    public AppointmentDTO createAppointment(AppointmentDTO appointmentDTO) throws Exception {
+        try {
+            Appointment appointment = new Appointment();
+            appointment.setName(appointmentDTO.getName());
+            appointment.setScheduledOn(appointmentDTO.getScheduledOn());
+            appointment.setDuration(appointmentDTO.getDuration());
+            appointment.setCreatedBy(appointmentDTO.getCreatedBy());
+            appointment.setParticipantId(appointmentDTO.getParticipantId());
+            appointment.setStatus(AppointmentStatus.SCHEDULED);
+            appointment.setCreatedAt(new Date(System.currentTimeMillis()));
+
+            appointment = appointmentRepository.save(appointment);
+            return convertToAppointmentDTO(appointment);
+        } catch (Exception e) {
+            throw new Exception("Failed to create appointment.");
+        }
+    }
+
     private AppointmentDTO convertToAppointmentDTO(Appointment appointment) {
         AppointmentDTO appointmentDTO = new AppointmentDTO();
+        appointmentDTO.setId(appointment.getId());
+        appointmentDTO.setName(appointment.getName());
+        appointmentDTO.setScheduledOn(appointment.getScheduledOn());
+        appointmentDTO.setDuration(appointment.getDuration());
+        appointmentDTO.setCreatedBy(appointment.getCreatedBy());
+        appointmentDTO.setParticipantId(appointment.getParticipantId());
+        appointmentDTO.setDuration(appointment.getDuration());
+        appointmentDTO.setStatus(appointment.getStatus());
+        appointmentDTO.setUpdatedAt(appointment.getUpdatedAt());
+        appointmentDTO.setCreatedAt(appointment.getCreatedAt());
 
         return appointmentDTO;
     }

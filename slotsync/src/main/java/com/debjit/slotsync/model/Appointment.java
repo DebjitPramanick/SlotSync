@@ -4,6 +4,8 @@ import java.util.Date;
 
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.debjit.slotsync.enums.AppointmentStatus;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,8 +22,7 @@ public class Appointment {
     private Integer duration;
     private String participantId;
     private String createdBy;
-    private boolean isFinished;
-    private boolean isCanceled;
+    private AppointmentStatus status;
     private String scheduledOn;
     private Date updatedAt;
     private Date createdAt;

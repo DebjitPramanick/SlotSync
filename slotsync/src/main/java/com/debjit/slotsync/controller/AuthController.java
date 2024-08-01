@@ -11,8 +11,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.debjit.slotsync.dto.ResponseWithMessageDTO;
 import com.debjit.slotsync.dto.UserDTO;
@@ -20,6 +23,9 @@ import com.debjit.slotsync.service.UserService;
 import com.debjit.slotsync.service.AuthService.CustomUserDetailsService;
 import com.debjit.slotsync.service.AuthService.JwtUtils;
 
+@RestController
+@RequestMapping(path = "/api")
+@CrossOrigin(origins = "http://localhost:8081/", allowCredentials = "true")
 public class AuthController {
     @Autowired
     UserService userService;
@@ -63,12 +69,12 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> loginUser(@RequestBody UserDTO authRequestDTO) {
+    public ResponseEntity<?> loginUser(@RequestBody UserDTO userDTO) {
         try {
-            authenticateUser(authRequestDTO.getEmail(), authRequestDTO.getPassword());
-            UserDetails userDetails = userDetailsService.loadUserByUsername(authRequestDTO.getEmail());
+            authenticateUser(userDTO.getEmail(), userDTO.getPassword());
+            UserDetails userDetails = userDetailsService.loadUserByUsername(userDTO.getEmail());
             String token = jwtUtils.generateToken(userDetails.getUsername());
-            UserDTO userDTO = userService.getUserByEmail(authRequestDTO.getEmail());
+            userDTO = userService.getUserByEmail(userDTO.getEmail());
             ResponseCookie cookie = generateCookies(token);
             HttpHeaders headers = new HttpHeaders();
             addCookiesToHeader(headers, cookie);
