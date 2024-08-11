@@ -6,27 +6,59 @@ import ClockIcon from "~/assets/icons/clock.svg?react";
 import UserIcon from "~/assets/icons/user.svg?react";
 import { Header } from "~/components/molecules";
 import { useImmer } from "use-immer";
-
-const DUMMY_SLOTS = [
-  // TODO: Remove later
-  {
-    id: 1,
-    label: "10:30 AM - 11:00 AM",
-    value: "10:30 AM - 11:00 AM",
-  },
-  {
-    id: 2,
-    label: "12:30 AM - 1:00 PM",
-    value: "12:30 AM - 1:00 PM",
-  },
-];
+import { useRequestStates } from "~/hooks";
+import { appointmentApi } from "~/api";
+import { useEffect } from "react";
+import moment from "moment";
+import Loader from "~/components/molecules/Loader";
+import { useNavigate, useParams } from "react-router-dom";
 
 export const ScheduleAppointmentView = () => {
+  const navigate = useNavigate();
+  const { participantId } = useParams();
+
+  const [fetchSlotsRequestState, fetchSlotRequestHandlers] = useRequestStates();
+  const [bookAppointmentRequestState, bookAppointmentRequestHandlers] =
+    useRequestStates();
+
   const [pageState, setPageState] = useImmer({
     appointmentName: "30 Minute - Appointment",
     selectedDate: null,
     selectedSlot: null,
   });
+
+  const getSlots = async () => {
+    fetchSlotRequestHandlers.pending();
+    const selectedDate = pageState.selectedDate
+      ? moment(pageState.selectedDate).format("DD-MM-YYYY")
+      : moment(new Date()).format("DD-MM-YYYY");
+    try {
+      const response = await appointmentApi.fetchSlots({
+        date: selectedDate,
+      });
+      fetchSlotRequestHandlers.fulfilled(response);
+    } catch (error) {
+      fetchSlotRequestHandlers.rejected(error);
+    }
+  };
+
+  const handleBookAppointment = async () => {
+    bookAppointmentRequestHandlers.pending();
+    const payload = {
+      name: pageState.appointmentName,
+      participantId: participantId,
+      scheduledOn: moment(pageState.selectedDate).toDate(),
+      slot: pageState.selectedSlot,
+    };
+    try {
+      const response = await appointmentApi.bookAppointment({
+        payload,
+      });
+      bookAppointmentRequestHandlers.fulfilled(response);
+    } catch (error) {
+      bookAppointmentRequestHandlers.rejected(error);
+    }
+  };
 
   const handleSelectDate = (date) => {
     setPageState((draft) => {
@@ -53,16 +85,76 @@ export const ScheduleAppointmentView = () => {
     });
   };
 
-  const handleBookSlot = () => {};
+  const redirectToDashboard = () => {
+    navigate("/");
+  };
+
+  useEffect(() => {
+    getSlots();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pageState.selectedDate]);
+
+  let slotsNode;
+  let slotsLoadingNode;
+
+  if (fetchSlotsRequestState.pending) {
+    slotsLoadingNode = <Loader />;
+  }
+  if (fetchSlotsRequestState.fulfilled) {
+    slotsNode = (
+      <>
+        {fetchSlotsRequestState.data.map((slot) => {
+          const isSelected = slot.sequence === pageState.selectedSlot?.sequence;
+          const startTime = moment(slot.startTime).format("hh:mm a");
+          const endTime = moment(slot.endTime).format("hh:mm a");
+          return (
+            <Styles.SlotContainer>
+              <Styles.Slot
+                key={slot.id}
+                selected={isSelected}
+                onClick={() => handleSelectSlot(slot)}
+              >
+                {startTime} - {endTime}
+              </Styles.Slot>
+              {isSelected ? (
+                <Flex mt="8px">
+                  <Button
+                    text="Cancel"
+                    outlined
+                    flex="1"
+                    onClick={handleUnselectSlot}
+                  />
+                  <Button
+                    text="Book"
+                    flex="1"
+                    ml="8px"
+                    onClick={handleBookAppointment}
+                    loading={bookAppointmentRequestState.pending}
+                    disabled={bookAppointmentRequestState.pending}
+                  />
+                </Flex>
+              ) : null}
+            </Styles.SlotContainer>
+          );
+        })}
+      </>
+    );
+  }
 
   return (
     <Styles.Root>
       <Header />
       <Styles.Container>
-        <Styles.PageTitle>Book an Appointment</Styles.PageTitle>
-        <Styles.PageDescription mt="8px">
-          Book an appointment by selecting available slot
-        </Styles.PageDescription>
+        <Flex>
+          <Button text="Go Back" onClick={redirectToDashboard} />
+          <Box ml="24px">
+            <Styles.PageTitle>Book an Appointment</Styles.PageTitle>
+            <Styles.PageDescription mt="8px">
+              Book an appointment by selecting available slot
+            </Styles.PageDescription>
+          </Box>
+        </Flex>
         <Styles.ScheduleSlotContainer mt="32px">
           <Styles.LeftSection>
             <Box>
@@ -97,36 +189,8 @@ export const ScheduleAppointmentView = () => {
           </Styles.MidSection>
           <Styles.RightSection>
             <Styles.SlotsContainer>
-              {DUMMY_SLOTS.map((slot) => {
-                const isSelected = slot.value === pageState.selectedSlot?.value;
-                return (
-                  <Styles.SlotContainer>
-                    <Styles.Slot
-                      key={slot.id}
-                      selected={isSelected}
-                      onClick={() => handleSelectSlot(slot)}
-                    >
-                      {slot.label}
-                    </Styles.Slot>
-                    {isSelected ? (
-                      <Flex mt="8px">
-                        <Button
-                          text="Cancel"
-                          outlined
-                          flex="1"
-                          onClick={handleUnselectSlot}
-                        />
-                        <Button
-                          text="Book"
-                          flex="1"
-                          ml="8px"
-                          onClick={handleBookSlot}
-                        />
-                      </Flex>
-                    ) : null}
-                  </Styles.SlotContainer>
-                );
-              })}
+              <Flex justifyContent="center">{slotsLoadingNode}</Flex>
+              {slotsNode}
             </Styles.SlotsContainer>
           </Styles.RightSection>
         </Styles.ScheduleSlotContainer>

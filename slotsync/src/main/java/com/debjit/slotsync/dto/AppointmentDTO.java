@@ -12,11 +12,11 @@ import lombok.Setter;
 public class AppointmentDTO {
     private String id;
     private String name;
-    private Integer duration;
     private String createdBy;
     private String participantId;
     private AppointmentStatus status;
-    private String scheduledOn;
+    private Date scheduledOn;
+    private SlotDTO slot;
     private Date updatedAt;
     private Date createdAt;
 }

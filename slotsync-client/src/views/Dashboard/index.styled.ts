@@ -1,8 +1,8 @@
 import styled from "styled-components";
-import { Box, Text } from "~/components/atoms";
+import { Box, Flex, Text } from "~/components/atoms";
 import { PageContainer } from "~/components/layout";
 import colors from "~/styles/colors";
-import { mediaQueryMobileOrTablet } from "~/styles/mixins";
+import { mediaQueryMobile, mediaQueryMobileOrTablet } from "~/styles/mixins";
 
 export const Root = styled(Box)`
   background-color: ${colors.BG_NEUTRAL_WEAKEST};
@@ -14,6 +14,14 @@ export const Container = styled(PageContainer)`
 
   ${mediaQueryMobileOrTablet} {
     min-height: calc(100vh - 48px);
+  }
+`;
+
+export const PageHeaderContainer = styled(Flex)`
+  justify-content: space-between;
+
+  ${mediaQueryMobile} {
+    flex-direction: column;
   }
 `;
 

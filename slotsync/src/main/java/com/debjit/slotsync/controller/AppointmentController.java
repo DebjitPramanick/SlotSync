@@ -38,9 +38,11 @@ public class AppointmentController {
         }
     }
 
-    @PostMapping("/appointments")
-    public ResponseEntity<?> createAppointment(@RequestBody AppointmentDTO appointmentDTO) {
+    @PostMapping("/appointments/book")
+    public ResponseEntity<?> bookAppointment(HttpServletRequest request, @RequestBody AppointmentDTO appointmentDTO) {
         try {
+            String loggedInUserId = request.getAttribute("user_id").toString();
+            appointmentDTO.setCreatedBy(loggedInUserId);
             appointmentDTO = appointmentService.createAppointment(appointmentDTO);
             return new ResponseEntity<>(appointmentDTO, HttpStatus.CREATED);
         } catch (Exception e) {
@@ -48,5 +50,4 @@ public class AppointmentController {
             return new ResponseEntity<>(new ResponseWithMessageDTO(errorMsg), HttpStatus.NOT_FOUND);
         }
     }
-
 }

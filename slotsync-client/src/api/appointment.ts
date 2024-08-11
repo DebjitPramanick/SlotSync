@@ -8,10 +8,18 @@ export const fetchAppointments = ({
   options?: Partial<RequestInit>;
 } = {}) => httpClient.get(`${API_URL}/appointments`, options);
 
-export const bookAppointments = ({
+export const bookAppointment = ({
   payload,
   options = {},
 }: {
   payload: any;
   options?: Partial<RequestInit>;
-}) => httpClient.post(`${API_URL}/appointments`, payload, options);
+}) => httpClient.post(`${API_URL}/appointments/book`, payload, options);
+
+export const fetchSlots = ({
+  date,
+  options = {},
+}: {
+  date: string;
+  options?: Partial<RequestInit>;
+}) => httpClient.get(`${API_URL}/slots?date=${date}`, options);

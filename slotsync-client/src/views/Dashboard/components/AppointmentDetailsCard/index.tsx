@@ -1,7 +1,12 @@
-import { Box, Button, Flex } from "~/components/atoms";
+import { Button, Flex } from "~/components/atoms";
 import * as Styles from "./index.styled";
+import moment from "moment";
 
-const SlotDetailsCard = ({ slot }) => {
+const AppointmentDetailsCard = ({ appointment }) => {
+  const { slot, scheduledOn } = appointment;
+  const appointmentStartTime = moment(slot.startTime).format("hh:mm a");
+  const appointmentScheduledOn = moment(scheduledOn).format("Do MMMM, YYYY");
+
   return (
     <Styles.Root>
       <Flex alignItems="flex-start">
@@ -15,7 +20,7 @@ const SlotDetailsCard = ({ slot }) => {
             </Styles.MeetingIconMobileDisplay>
             <Styles.AppointmentNameContainer>
               <Styles.AppointmentName>
-                30 Minutes Appointment
+                {appointment.name}
               </Styles.AppointmentName>
               <Styles.AppointmentDescription mt="8px">
                 Appointment with{" "}
@@ -26,10 +31,14 @@ const SlotDetailsCard = ({ slot }) => {
           <Styles.Divider mt="16px" />
           <Styles.FooterContainer>
             <Styles.TagsContainer>
-              <Styles.Tag>30 Mins</Styles.Tag>
+              <Styles.Tag>{slot.durationInMinutes} Mins</Styles.Tag>
               <Styles.Tag>
                 Scheduled On:{" "}
-                <span style={{ fontWeight: 600 }}>2nd July, 2024</span>
+                <span style={{ fontWeight: 600 }}>
+                  {appointmentScheduledOn}
+                </span>{" "}
+                at{" "}
+                <span style={{ fontWeight: 600 }}>{appointmentStartTime}</span>
               </Styles.Tag>
             </Styles.TagsContainer>
             <Flex>
@@ -43,4 +52,4 @@ const SlotDetailsCard = ({ slot }) => {
   );
 };
 
-export default SlotDetailsCard;
+export default AppointmentDetailsCard;
