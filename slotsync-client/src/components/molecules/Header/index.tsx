@@ -1,23 +1,25 @@
 import colors from "~/styles/colors";
 import * as Styles from "./index.styled";
 import { Button } from "~/components/atoms";
-import { link } from "fs";
+import { useRequestStates } from "~/hooks";
+import { userApi } from "~/api";
 // import { userApi } from "~/api";
 // import { useRequestStates } from "~/hooks";
 
 const Header = () => {
-  // const [logoutUserRequestState, logoutUserRequestHandlers] =
-  //   useRequestStates();
+  const [logoutUserRequestState, logoutUserRequestHandlers] =
+    useRequestStates();
 
-  // const handleLogoutBtnClick = async () => {
-  //   logoutUserRequestHandlers.pending();
-  //   try {
-  //     const response = await userApi.logoutUser({});
-  //     logoutUserRequestHandlers.fulfilled(response);
-  //   } catch (error) {
-  //     logoutUserRequestHandlers.rejected(error);
-  //   }
-  // };
+  const handleLogoutBtnClick = async () => {
+    logoutUserRequestHandlers.pending();
+    try {
+      const response = await userApi.logoutUser({});
+      logoutUserRequestHandlers.fulfilled(response);
+      window.location.href = "/";
+    } catch (error) {
+      logoutUserRequestHandlers.rejected(error);
+    }
+  };
 
   return (
     <Styles.Root>
@@ -30,9 +32,9 @@ const Header = () => {
             text="Log Out"
             size="medium"
             outlined
-            // onClick={handleLogoutBtnClick}
-            // loading={logoutUserRequestState.pending}
-            // disabled={logoutUserRequestState.pending}
+            onClick={handleLogoutBtnClick}
+            loading={logoutUserRequestState.pending}
+            disabled={logoutUserRequestState.pending}
           />
         </Styles.Container>
       </Styles.HeaderRoot>
