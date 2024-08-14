@@ -7,33 +7,43 @@ import UserIcon from "~/assets/icons/user.svg?react";
 import { Header } from "~/components/molecules";
 import { useImmer } from "use-immer";
 import { useRequestStates } from "~/hooks";
-import { appointmentApi } from "~/api";
+import { appointmentApi, userApi } from "~/api";
 import { useEffect } from "react";
 import moment from "moment";
 import Loader from "~/components/molecules/Loader";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import UserSearchBox from "./components/UserSearchBox";
 
 export const ScheduleAppointmentView = () => {
   const navigate = useNavigate();
-  const { participantId } = useParams();
 
   const [fetchSlotsRequestState, fetchSlotRequestHandlers] = useRequestStates();
+  const [
+    fetchParticipantsByQueryRequestState,
+    fetchParticipantsByQueryRequestHandlers,
+  ] = useRequestStates();
   const [bookAppointmentRequestState, bookAppointmentRequestHandlers] =
     useRequestStates();
 
   const [pageState, setPageState] = useImmer({
+    userQuery: "",
+    selectedParticipant: null,
     appointmentName: "30 Minute - Appointment",
     selectedDate: null,
     selectedSlot: null,
   });
 
   const getSlots = async () => {
+    if (!pageState.selectedParticipant) {
+      return;
+    }
     fetchSlotRequestHandlers.pending();
     const selectedDate = pageState.selectedDate
       ? moment(pageState.selectedDate).format("DD-MM-YYYY")
       : moment(new Date()).format("DD-MM-YYYY");
     try {
       const response = await appointmentApi.fetchSlots({
+        userId: pageState.selectedParticipant.id,
         date: selectedDate,
       });
       fetchSlotRequestHandlers.fulfilled(response);
@@ -42,11 +52,21 @@ export const ScheduleAppointmentView = () => {
     }
   };
 
+  const getParticipantsByQuery = async () => {
+    fetchParticipantsByQueryRequestHandlers.pending();
+    try {
+      const response = await userApi.searchUsers(pageState.userQuery);
+      fetchParticipantsByQueryRequestHandlers.fulfilled(response);
+    } catch (error) {
+      fetchParticipantsByQueryRequestHandlers.rejected(error);
+    }
+  };
+
   const handleBookAppointment = async () => {
     bookAppointmentRequestHandlers.pending();
     const payload = {
       name: pageState.appointmentName,
-      participantId: participantId,
+      participantId: pageState.selectedParticipant.id,
       scheduledOn: moment(pageState.selectedDate).toDate(),
       slot: pageState.selectedSlot,
     };
@@ -85,6 +105,20 @@ export const ScheduleAppointmentView = () => {
     });
   };
 
+  const handleChangeUserQuery = (e) => {
+    setPageState((draft) => {
+      draft.userQuery = e.target.value;
+      draft.selectedParticipant = null;
+    });
+  };
+
+  const handleSelectParticipant = (participant) => {
+    setPageState((draft) => {
+      draft.selectedParticipant = participant;
+      draft.userQuery = participant.name;
+    });
+  };
+
   const redirectToDashboard = () => {
     navigate("/");
   };
@@ -93,7 +127,23 @@ export const ScheduleAppointmentView = () => {
     getSlots();
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pageState.selectedDate]);
+  }, [pageState.selectedDate, pageState.selectedParticipant]);
+
+  useEffect(() => {
+    let timeoutId;
+
+    if (pageState.userQuery) {
+      timeoutId = setTimeout(() => {
+        getParticipantsByQuery();
+      }, 500);
+    }
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pageState.userQuery]);
 
   let slotsNode;
   let slotsLoadingNode;
@@ -168,13 +218,23 @@ export const ScheduleAppointmentView = () => {
             </Box>
             <Flex mt="24px" alignItems="center">
               <Styles.IconWrapper>
-                <ClockIcon />
+                <UserIcon />
               </Styles.IconWrapper>
-              <Styles.MetaData ml="8px">Debjit Pramanick</Styles.MetaData>
+              <UserSearchBox
+                userQuery={pageState.userQuery}
+                selectedParticipant={pageState.selectedParticipant}
+                fetchParticipantsByQueryRequestState={
+                  fetchParticipantsByQueryRequestState
+                }
+                onChangeQuery={handleChangeUserQuery}
+                onSelectParticipant={handleSelectParticipant}
+                ml="8px"
+                flex="1"
+              />
             </Flex>
             <Flex mt="16px" alignItems="center">
               <Styles.IconWrapper>
-                <UserIcon />
+                <ClockIcon />
               </Styles.IconWrapper>
               <Styles.MetaData ml="8px">30 Min</Styles.MetaData>
             </Flex>

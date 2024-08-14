@@ -1,6 +1,8 @@
 package com.debjit.slotsync.service;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -34,6 +36,19 @@ public class UserService {
                 return null;
             }
             return convertToUserDTO(user);
+        } catch (Exception e) {
+            throw e;
+        }
+    }
+
+    public List<UserDTO> getUserByQuery(String query) throws Exception {
+        try {
+            List<User> users = userRepository.findByNameIgnoreCaseIsStartingWith(query);
+            List<UserDTO> userDTOs = new ArrayList<>();
+            for (User user : users) {
+                userDTOs.add(convertToUserDTO(user));
+            }
+            return userDTOs;
         } catch (Exception e) {
             throw e;
         }

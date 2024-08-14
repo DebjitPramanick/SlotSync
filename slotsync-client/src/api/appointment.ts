@@ -17,9 +17,11 @@ export const bookAppointment = ({
 }) => httpClient.post(`${API_URL}/appointments/book`, payload, options);
 
 export const fetchSlots = ({
+  userId,
   date,
   options = {},
 }: {
+  userId: string;
   date: string;
   options?: Partial<RequestInit>;
-}) => httpClient.get(`${API_URL}/slots?date=${date}`, options);
+}) => httpClient.get(`${API_URL}/users/${userId}/slots?date=${date}`, options);

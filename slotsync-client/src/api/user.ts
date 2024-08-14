@@ -13,5 +13,8 @@ export const logoutUser = ({ payload = {} }: { payload?: object }) =>
 
 export const fetchUser = () => httpClient.get(`${API_URL}/users`);
 
+export const searchUsers = (query) =>
+  httpClient.get(`${API_URL}/users/search?query=${query}`, {});
+
 export const fetchUsersByGroupId = (groupId: string) =>
   httpClient.get(`${API_URL}/users/groups/${groupId}`);

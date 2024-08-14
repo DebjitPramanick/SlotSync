@@ -24,6 +24,7 @@ import com.debjit.slotsync.service.SlotService;
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
 @RestController
 @RequestMapping(path = "/api")
@@ -36,13 +37,13 @@ public class SlotController {
     @Autowired
     SlotService slotService;
 
-    @GetMapping("/slots")
-    public ResponseEntity<?> getSlots(HttpServletRequest request, @RequestParam String date) {
+    @GetMapping("/users/{userId}/slots")
+    public ResponseEntity<?> getSlots(HttpServletRequest request, @RequestParam(name = "date") String date,
+            @PathVariable(name = "userId") String userId) {
         try {
-            String loggedInUserId = request.getAttribute("user_id").toString();
             Date scheduledOn = new SimpleDateFormat("dd-MM-yyyy").parse(date);
             List<AppointmentDTO> alreadyBookedAppointments = appointmentService
-                    .getAppointmentsByScheduledDate(loggedInUserId, scheduledOn);
+                    .getAppointmentsByScheduledDate(userId, scheduledOn);
             List<SlotSequence> sequencesToIgnore = new ArrayList<>();
             for (AppointmentDTO appo : alreadyBookedAppointments) {
                 sequencesToIgnore.add(appo.getSlot().getSequence());
