@@ -5,8 +5,11 @@ const makeHttpRequest = async (
   const headers = {
     Accept: "application/json",
     "Content-Type": "application/json;charset=utf-8",
+    "Access-Control-Allow-Methods": "*",
     ...extraHeaders,
   };
+
+  console.log(url, method, rest);
 
   const response = await fetch(url, {
     cache: "no-cache",

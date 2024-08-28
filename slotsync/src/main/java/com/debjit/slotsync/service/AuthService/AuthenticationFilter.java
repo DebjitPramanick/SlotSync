@@ -68,6 +68,9 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             logger.error("Cannot set user authentication: {}", e.getMessage());
         }
 
+        response.setHeader("Access-Control-Allow-Origin", "http://localhost:8081/");
+        response.setHeader("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PATCH,PUT");
+
         logger.info("Continuing filter chain.");
 
         // Continue the filter chain as usual

@@ -41,7 +41,7 @@ public class SlotController {
     public ResponseEntity<?> getSlots(HttpServletRequest request, @RequestParam(name = "date") String date,
             @PathVariable(name = "userId") String userId) {
         try {
-            Date scheduledOn = new SimpleDateFormat("dd-MM-yyyy").parse(date);
+            Date scheduledOn = new SimpleDateFormat("yyyy-MM-dd").parse(date);
             List<AppointmentDTO> alreadyBookedAppointments = appointmentService
                     .getAppointmentsByScheduledDate(userId, scheduledOn);
             List<SlotSequence> sequencesToIgnore = new ArrayList<>();

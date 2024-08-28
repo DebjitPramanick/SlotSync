@@ -7,6 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -47,6 +49,18 @@ public class AppointmentController {
             return new ResponseEntity<>(appointmentDTO, HttpStatus.CREATED);
         } catch (Exception e) {
             String errorMsg = e.getMessage() != null ? e.getMessage() : "Failed to create appointment.";
+            return new ResponseEntity<>(new ResponseWithMessageDTO(errorMsg), HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @PatchMapping("/appointments/update/{id}")
+    public ResponseEntity<?> updateAppointment(@PathVariable String id, @RequestBody AppointmentDTO appointmentDTO) {
+        try {
+            appointmentDTO.setId(id);
+            appointmentDTO = appointmentService.updateAppointment(appointmentDTO);
+            return new ResponseEntity<>(appointmentDTO, HttpStatus.OK);
+        } catch (Exception e) {
+            String errorMsg = e.getMessage() != null ? e.getMessage() : "Failed to update appointment.";
             return new ResponseEntity<>(new ResponseWithMessageDTO(errorMsg), HttpStatus.NOT_FOUND);
         }
     }

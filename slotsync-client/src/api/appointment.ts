@@ -16,6 +16,21 @@ export const bookAppointment = ({
   options?: Partial<RequestInit>;
 }) => httpClient.post(`${API_URL}/appointments/book`, payload, options);
 
+export const updateAppointment = ({
+  appointmentId,
+  payload,
+  options = {},
+}: {
+  appointmentId: string;
+  payload: any;
+  options?: Partial<RequestInit>;
+}) =>
+  httpClient.patch(
+    `${API_URL}/appointments/update/${appointmentId}`,
+    payload,
+    options
+  );
+
 export const fetchSlots = ({
   userId,
   date,

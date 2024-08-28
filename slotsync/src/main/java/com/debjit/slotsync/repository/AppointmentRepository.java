@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.debjit.slotsync.model.Appointment;
@@ -14,5 +15,6 @@ public interface AppointmentRepository extends MongoRepository<Appointment, Stri
 
     public List<Appointment> findByParticipantId(String userId);
 
-    public List<Appointment> findByIdAndScheduledOn(String id, Date scheduledOn);
+    @Query("{$and: [{$or: [{createdBy: ?0}, {participantId: ?0}]}, {scheduledOn: {$gte: ?1, $lt: ?2}}]}")
+    public List<Appointment> findByUserIdWithinDateRange(String id, Date start, Date end);
 }

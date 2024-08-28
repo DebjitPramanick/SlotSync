@@ -1,7 +1,9 @@
 package com.debjit.slotsync.service;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,7 +59,14 @@ public class AppointmentService {
 
     public List<AppointmentDTO> getAppointmentsByScheduledDate(String userId, Date scheduledOn) {
         try {
-            List<Appointment> appointments = appointmentRepository.findByIdAndScheduledOn(userId, scheduledOn);
+            Date[] dateRanges = new Date[2];
+            dateRanges[0] = scheduledOn;
+            Calendar endDate = new GregorianCalendar();
+            endDate.setTime(scheduledOn);
+            endDate.add(Calendar.DAY_OF_MONTH, 1);
+            dateRanges[1] = endDate.getTime();
+            List<Appointment> appointments = appointmentRepository.findByUserIdWithinDateRange(userId, dateRanges[0],
+                    dateRanges[1]);
             List<AppointmentDTO> results = new ArrayList<>();
             for (Appointment appo : appointments) {
                 results.add(convertToAppointmentDTO(appo));
@@ -83,6 +92,24 @@ public class AppointmentService {
             return convertToAppointmentDTO(appointment);
         } catch (Exception e) {
             throw new Exception("Failed to create appointment.");
+        }
+    }
+
+    public AppointmentDTO updateAppointment(AppointmentDTO appointmentDTO) throws Exception {
+        try {
+            Appointment appointment = new Appointment();
+            appointment.setName(appointmentDTO.getName());
+            appointment.setSlot(appointmentDTO.getSlot());
+            appointment.setScheduledOn(appointmentDTO.getScheduledOn());
+            appointment.setCreatedBy(appointmentDTO.getCreatedBy());
+            appointment.setParticipantId(appointmentDTO.getParticipantId());
+            appointment.setStatus(AppointmentStatus.SCHEDULED);
+            appointment.setCreatedAt(new Date(System.currentTimeMillis()));
+
+            appointment = appointmentRepository.save(appointment);
+            return convertToAppointmentDTO(appointment);
+        } catch (Exception e) {
+            throw new Exception("Failed to update appointment.");
         }
     }
 

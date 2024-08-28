@@ -14,6 +14,8 @@ import Loader from "~/components/molecules/Loader";
 import { useNavigate } from "react-router-dom";
 import UserSearchBox from "./components/UserSearchBox";
 
+const DATE_FORMAT = "YYYY-MM-DD";
+
 export const ScheduleAppointmentView = () => {
   const navigate = useNavigate();
 
@@ -29,7 +31,7 @@ export const ScheduleAppointmentView = () => {
     userQuery: "",
     selectedParticipant: null,
     appointmentName: "30 Minute - Appointment",
-    selectedDate: null,
+    selectedDate: moment(),
     selectedSlot: null,
   });
 
@@ -38,9 +40,7 @@ export const ScheduleAppointmentView = () => {
       return;
     }
     fetchSlotRequestHandlers.pending();
-    const selectedDate = pageState.selectedDate
-      ? moment(pageState.selectedDate).format("DD-MM-YYYY")
-      : moment(new Date()).format("DD-MM-YYYY");
+    const selectedDate = moment(pageState.selectedDate).format(DATE_FORMAT);
     try {
       const response = await appointmentApi.fetchSlots({
         userId: pageState.selectedParticipant.id,
@@ -67,7 +67,7 @@ export const ScheduleAppointmentView = () => {
     const payload = {
       name: pageState.appointmentName,
       participantId: pageState.selectedParticipant.id,
-      scheduledOn: moment(pageState.selectedDate).toDate(),
+      scheduledOn: moment(pageState.selectedDate).format(DATE_FORMAT),
       slot: pageState.selectedSlot,
     };
     try {
