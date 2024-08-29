@@ -2,6 +2,7 @@ import { Button, Flex } from "~/components/atoms";
 import * as Styles from "./index.styled";
 import moment from "moment";
 import { APPOINTMENT_STATUSES } from "~/constants";
+import colors from "~/styles/colors";
 
 const AppointmentDetailsCard = ({
   appointment,
@@ -14,7 +15,7 @@ const AppointmentDetailsCard = ({
 
   const handleMarkAsCompleteBtnClick = () => {
     const updatedAppointment = {
-      status: APPOINTMENT_STATUSES.COMPLETED,
+      status: APPOINTMENT_STATUSES.FINISHED,
     };
     onUpdateAppointment({
       appointmentId: appointment.id,
@@ -31,6 +32,40 @@ const AppointmentDetailsCard = ({
       updatedData: updatedAppointment,
     });
   };
+
+  let actionBtnsNode;
+  let statusNode;
+
+  if (appointment.status === APPOINTMENT_STATUSES.SCHEDULED) {
+    actionBtnsNode = (
+      <Flex>
+        <Button
+          text="Cancel"
+          size="small"
+          flex="1"
+          outlined
+          onClick={handleCancelAppointmentBtnClick}
+        />
+        <Button
+          text="Mark as Done"
+          size="small"
+          ml="12px"
+          flex="1"
+          onClick={handleMarkAsCompleteBtnClick}
+        />
+      </Flex>
+    );
+  } else {
+    let statusNodeBg;
+    if (appointment.status === APPOINTMENT_STATUSES.FINISHED) {
+      statusNodeBg = colors.BG_POSITIVE_WEAKER;
+    } else {
+      statusNodeBg = colors.BG_NEGATIVE_WEAKER;
+    }
+    statusNode = (
+      <Styles.Tag bg={statusNodeBg}>{appointment.status}</Styles.Tag>
+    );
+  }
 
   return (
     <Styles.Root>
@@ -49,7 +84,9 @@ const AppointmentDetailsCard = ({
               </Styles.AppointmentName>
               <Styles.AppointmentDescription mt="8px">
                 Appointment with{" "}
-                <span style={{ fontWeight: 600 }}>Debjit Pramanick</span>
+                <span style={{ fontWeight: 600 }}>
+                  {appointment.participant.name}
+                </span>
               </Styles.AppointmentDescription>
             </Styles.AppointmentNameContainer>
           </Flex>
@@ -66,22 +103,8 @@ const AppointmentDetailsCard = ({
                 <span style={{ fontWeight: 600 }}>{appointmentStartTime}</span>
               </Styles.Tag>
             </Styles.TagsContainer>
-            <Flex>
-              <Button
-                text="Cancel"
-                size="small"
-                flex="1"
-                outlined
-                onClick={handleCancelAppointmentBtnClick}
-              />
-              <Button
-                text="Mark as Done"
-                size="small"
-                ml="12px"
-                flex="1"
-                onClick={handleMarkAsCompleteBtnClick}
-              />
-            </Flex>
+            {actionBtnsNode}
+            {statusNode}
           </Styles.FooterContainer>
         </Styles.AppointmentDetailsContainer>
       </Flex>

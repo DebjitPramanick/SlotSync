@@ -12,9 +12,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.debjit.slotsync.dto.AppointmentDTO;
 import com.debjit.slotsync.dto.ResponseWithMessageDTO;
+import com.debjit.slotsync.dto.AppointmentDTO.RequestAppointmentDTO;
+import com.debjit.slotsync.dto.AppointmentDTO.ResponseAppointmentDTO;
 import com.debjit.slotsync.service.AppointmentService;
+import com.debjit.slotsync.service.UserService;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -23,16 +25,19 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping(path = "/api")
-@CrossOrigin(origins = "http://localhost:8081/", allowCredentials = "true")
+@CrossOrigin(origins = "http://localhost:8081", allowCredentials = "true")
 public class AppointmentController {
     @Autowired
     AppointmentService appointmentService;
+
+    @Autowired
+    UserService userService;
 
     @GetMapping("/appointments")
     public ResponseEntity<?> getAppointments(HttpServletRequest request) {
         try {
             String loggedInUserId = request.getAttribute("user_id").toString();
-            List<AppointmentDTO> appointments = appointmentService.getAppointmentsCreatedByUser(loggedInUserId);
+            List<ResponseAppointmentDTO> appointments = appointmentService.getAppointmentsCreatedByUser(loggedInUserId);
             return new ResponseEntity<>(appointments, HttpStatus.CREATED);
         } catch (Exception e) {
             String errorMsg = e.getMessage() != null ? e.getMessage() : "Failed to create appointment.";
@@ -41,12 +46,13 @@ public class AppointmentController {
     }
 
     @PostMapping("/appointments/book")
-    public ResponseEntity<?> bookAppointment(HttpServletRequest request, @RequestBody AppointmentDTO appointmentDTO) {
+    public ResponseEntity<?> bookAppointment(HttpServletRequest request,
+            @RequestBody RequestAppointmentDTO appointmentDTO) {
         try {
             String loggedInUserId = request.getAttribute("user_id").toString();
-            appointmentDTO.setCreatedBy(loggedInUserId);
-            appointmentDTO = appointmentService.createAppointment(appointmentDTO);
-            return new ResponseEntity<>(appointmentDTO, HttpStatus.CREATED);
+            appointmentDTO.setCreatedById(loggedInUserId);
+            ResponseAppointmentDTO responseAppointmentDTO = appointmentService.createAppointment(appointmentDTO);
+            return new ResponseEntity<>(responseAppointmentDTO, HttpStatus.CREATED);
         } catch (Exception e) {
             String errorMsg = e.getMessage() != null ? e.getMessage() : "Failed to create appointment.";
             return new ResponseEntity<>(new ResponseWithMessageDTO(errorMsg), HttpStatus.NOT_FOUND);
@@ -54,11 +60,12 @@ public class AppointmentController {
     }
 
     @PatchMapping("/appointments/update/{id}")
-    public ResponseEntity<?> updateAppointment(@PathVariable String id, @RequestBody AppointmentDTO appointmentDTO) {
+    public ResponseEntity<?> updateAppointment(@PathVariable String id,
+            @RequestBody RequestAppointmentDTO appointmentDTO) {
         try {
             appointmentDTO.setId(id);
-            appointmentDTO = appointmentService.updateAppointment(appointmentDTO);
-            return new ResponseEntity<>(appointmentDTO, HttpStatus.OK);
+            ResponseAppointmentDTO responseAppointmentDTO = appointmentService.updateAppointment(appointmentDTO);
+            return new ResponseEntity<>(responseAppointmentDTO, HttpStatus.OK);
         } catch (Exception e) {
             String errorMsg = e.getMessage() != null ? e.getMessage() : "Failed to update appointment.";
             return new ResponseEntity<>(new ResponseWithMessageDTO(errorMsg), HttpStatus.NOT_FOUND);

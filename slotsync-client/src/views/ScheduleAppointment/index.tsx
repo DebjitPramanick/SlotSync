@@ -2,6 +2,7 @@ import * as Styles from "./index.styled";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import { Box, Button, Flex } from "~/components/atoms";
+import ChevronLeft from "~/assets/icons/chevron-left.svg?react";
 import ClockIcon from "~/assets/icons/clock.svg?react";
 import UserIcon from "~/assets/icons/user.svg?react";
 import { Header } from "~/components/molecules";
@@ -13,6 +14,8 @@ import moment from "moment";
 import Loader from "~/components/molecules/Loader";
 import { useNavigate } from "react-router-dom";
 import UserSearchBox from "./components/UserSearchBox";
+import { APPOINTMENT_BOOKING_VIEWS } from "./constants";
+import colors from "~/styles/colors";
 
 const DATE_FORMAT = "YYYY-MM-DD";
 
@@ -33,6 +36,7 @@ export const ScheduleAppointmentView = () => {
     appointmentName: "30 Minute - Appointment",
     selectedDate: moment(),
     selectedSlot: null,
+    currentView: APPOINTMENT_BOOKING_VIEWS.SCHEDULE,
   });
 
   const getSlots = async () => {
@@ -75,6 +79,9 @@ export const ScheduleAppointmentView = () => {
         payload,
       });
       bookAppointmentRequestHandlers.fulfilled(response);
+      setPageState((draft) => {
+        draft.currentView = APPOINTMENT_BOOKING_VIEWS.SUCCESS;
+      });
     } catch (error) {
       bookAppointmentRequestHandlers.rejected(error);
     }
@@ -147,6 +154,7 @@ export const ScheduleAppointmentView = () => {
 
   let slotsNode;
   let slotsLoadingNode;
+  let nodeToRender;
 
   if (fetchSlotsRequestState.pending) {
     slotsLoadingNode = <Loader />;
@@ -192,12 +200,106 @@ export const ScheduleAppointmentView = () => {
     );
   }
 
+  if (pageState.currentView === APPOINTMENT_BOOKING_VIEWS.SCHEDULE) {
+    nodeToRender = (
+      <Styles.ScheduleSlotContainer mt="32px">
+        <Styles.LeftSection>
+          <Box>
+            <Styles.InputLabel>Appointment Name</Styles.InputLabel>
+            <Styles.AppointmentNameInput
+              mt="12px"
+              placeholder="Enter name"
+              value={pageState.appointmentName}
+              onChange={handleChangeAppointmentName}
+            />
+          </Box>
+          <Flex mt="24px" alignItems="center">
+            <Styles.IconWrapper>
+              <UserIcon />
+            </Styles.IconWrapper>
+            <UserSearchBox
+              userQuery={pageState.userQuery}
+              selectedParticipant={pageState.selectedParticipant}
+              fetchParticipantsByQueryRequestState={
+                fetchParticipantsByQueryRequestState
+              }
+              onChangeQuery={handleChangeUserQuery}
+              onSelectParticipant={handleSelectParticipant}
+              ml="8px"
+              flex="1"
+            />
+          </Flex>
+          <Flex mt="16px" alignItems="center">
+            <Styles.IconWrapper>
+              <ClockIcon />
+            </Styles.IconWrapper>
+            <Styles.MetaData ml="8px">30 Min</Styles.MetaData>
+          </Flex>
+        </Styles.LeftSection>
+        <Styles.MidSection>
+          <Styles.CalendarContainer>
+            <Calendar
+              onChange={handleSelectDate}
+              value={pageState.selectedDate}
+              minDate={new Date()}
+            />
+          </Styles.CalendarContainer>
+        </Styles.MidSection>
+        <Styles.RightSection>
+          <Styles.SlotsContainer>
+            <Flex justifyContent="center">{slotsLoadingNode}</Flex>
+            {slotsNode}
+          </Styles.SlotsContainer>
+        </Styles.RightSection>
+      </Styles.ScheduleSlotContainer>
+    );
+  } else if (pageState.currentView === APPOINTMENT_BOOKING_VIEWS.SUCCESS) {
+    nodeToRender = (
+      <Styles.SuccessViewContainer>
+        <Box>
+          <Styles.SuccessText>
+            <span style={{ color: colors.TEXT_POSITIVE_NORMAL }}>
+              Successfully
+            </span>{" "}
+            Booked!
+          </Styles.SuccessText>
+          <Styles.AppointmentInfo mt="16px">
+            Booked an appointment with{" "}
+            <span
+              style={{ color: colors.TEXT_NEUTRAL_NORMAL, fontWeight: 600 }}
+            >
+              {bookAppointmentRequestState.data.participant.name}
+            </span>{" "}
+            <br />
+            on{" "}
+            <span
+              style={{ color: colors.TEXT_NEUTRAL_NORMAL, fontWeight: 600 }}
+            >
+              {moment(pageState.selectedDate).format("Do MMMM, YYYY")}
+            </span>{" "}
+            at{" "}
+            <span
+              style={{ color: colors.TEXT_NEUTRAL_NORMAL, fontWeight: 600 }}
+            >
+              {moment(pageState.selectedSlot.startTime).format("hh:mm a")}
+            </span>
+          </Styles.AppointmentInfo>
+        </Box>
+        <Button
+          text="See Appointments"
+          mt="20px"
+          onClick={redirectToDashboard}
+        />
+      </Styles.SuccessViewContainer>
+    );
+  }
+
   return (
     <Styles.Root>
       <Header />
       <Styles.Container>
         <Flex>
-          <Button text="Go Back" onClick={redirectToDashboard} />
+          <Button icon={<ChevronLeft />} onClick={redirectToDashboard} />
           <Box ml="24px">
             <Styles.PageTitle>Book an Appointment</Styles.PageTitle>
             <Styles.PageDescription mt="8px">
@@ -205,55 +307,7 @@ export const ScheduleAppointmentView = () => {
             </Styles.PageDescription>
           </Box>
         </Flex>
-        <Styles.ScheduleSlotContainer mt="32px">
-          <Styles.LeftSection>
-            <Box>
-              <Styles.InputLabel>Appointment Name</Styles.InputLabel>
-              <Styles.AppointmentNameInput
-                mt="12px"
-                placeholder="Enter name"
-                value={pageState.appointmentName}
-                onChange={handleChangeAppointmentName}
-              />
-            </Box>
-            <Flex mt="24px" alignItems="center">
-              <Styles.IconWrapper>
-                <UserIcon />
-              </Styles.IconWrapper>
-              <UserSearchBox
-                userQuery={pageState.userQuery}
-                selectedParticipant={pageState.selectedParticipant}
-                fetchParticipantsByQueryRequestState={
-                  fetchParticipantsByQueryRequestState
-                }
-                onChangeQuery={handleChangeUserQuery}
-                onSelectParticipant={handleSelectParticipant}
-                ml="8px"
-                flex="1"
-              />
-            </Flex>
-            <Flex mt="16px" alignItems="center">
-              <Styles.IconWrapper>
-                <ClockIcon />
-              </Styles.IconWrapper>
-              <Styles.MetaData ml="8px">30 Min</Styles.MetaData>
-            </Flex>
-          </Styles.LeftSection>
-          <Styles.MidSection>
-            <Styles.CalendarContainer>
-              <Calendar
-                onChange={handleSelectDate}
-                value={pageState.selectedDate}
-              />
-            </Styles.CalendarContainer>
-          </Styles.MidSection>
-          <Styles.RightSection>
-            <Styles.SlotsContainer>
-              <Flex justifyContent="center">{slotsLoadingNode}</Flex>
-              {slotsNode}
-            </Styles.SlotsContainer>
-          </Styles.RightSection>
-        </Styles.ScheduleSlotContainer>
+        {nodeToRender}
       </Styles.Container>
     </Styles.Root>
   );

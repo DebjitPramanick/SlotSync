@@ -3,16 +3,26 @@ import * as Styles from "./index.styled";
 import AppointmentDetailsCard from "./components/AppointmentDetailsCard";
 import { useRequestStates } from "~/hooks";
 import { appointmentApi } from "~/api";
-import { useEffect } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { Box, Button } from "~/components/atoms";
 import { useNavigate } from "react-router-dom";
+import Select from "react-select";
+import { useImmer } from "use-immer";
+import { APPOINTMENTS_FILTER } from "./constants";
+import { APPOINTMENT_STATUSES } from "~/constants";
+import moment from "moment";
+import { useAppContext } from "~/contexts";
 
 const DashboardView = () => {
+  const { user } = useAppContext();
   const navigate = useNavigate();
   const [fetchAppointmentsRequestState, fetchAppointmentsRequestHandlers] =
     useRequestStates();
   const [updateAppointmentsRequestState, updateAppointmentsRequestHandlers] =
     useRequestStates();
+  const [pageState, setPageState] = useImmer({
+    selectedFilter: APPOINTMENTS_FILTER.ALL,
+  });
 
   const getAppointments = async () => {
     fetchAppointmentsRequestHandlers.pending();
@@ -41,10 +51,62 @@ const DashboardView = () => {
     navigate("/book-appointment");
   };
 
+  const handleChangeFilter = (selected) => {
+    setPageState((draft) => {
+      draft.selectedFilter = selected.value;
+    });
+  };
+
   useEffect(() => {
     getAppointments();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const filterOptions = (() => {
+    const filterKeys = Object.keys(APPOINTMENTS_FILTER);
+    const options = filterKeys.map((_key) => ({
+      label: APPOINTMENTS_FILTER[_key],
+      value: APPOINTMENTS_FILTER[_key],
+    }));
+    return options;
+  })();
+
+  const filteredAppointments = useCallback(() => {
+    const appointments = fetchAppointmentsRequestState.data ?? [];
+    if (pageState.selectedFilter === APPOINTMENTS_FILTER.ALL) {
+      return appointments;
+    } else if (pageState.selectedFilter === APPOINTMENTS_FILTER.CANCELED) {
+      return appointments.filter(
+        (appointment) => appointment.status === APPOINTMENT_STATUSES.CANCELED
+      );
+    } else if (pageState.selectedFilter === APPOINTMENTS_FILTER.FINISHED) {
+      return appointments.filter(
+        (appointment) => appointment.status === APPOINTMENT_STATUSES.FINISHED
+      );
+    } else if (pageState.selectedFilter === APPOINTMENTS_FILTER.PAST) {
+      return appointments.filter((appointment) =>
+        moment(appointment.scheduledOn).isBefore(moment())
+      );
+    } else if (pageState.selectedFilter === APPOINTMENTS_FILTER.UPCOMING) {
+      return appointments.filter((appointment) =>
+        moment(appointment.scheduledOn).isAfter(moment())
+      );
+    } else if (
+      pageState.selectedFilter === APPOINTMENTS_FILTER.SCHEDULED_BY_ME
+    ) {
+      return appointments.filter(
+        (appointment) => appointment.createdBy.id === user.id
+      );
+    } else if (
+      pageState.selectedFilter === APPOINTMENTS_FILTER.SCHEDULED_BY_OTHERS
+    ) {
+      return appointments.filter(
+        (appointment) => appointment.createdBy.id !== user.id
+      );
+    }
+    return [];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pageState.selectedFilter, fetchAppointmentsRequestState.data])();
 
   if (fetchAppointmentsRequestState.pending) {
     return <PageLoader />;
@@ -66,8 +128,19 @@ const DashboardView = () => {
             onClick={redirectToAppointmentBookingPage}
           />
         </Styles.PageHeaderContainer>
-        <Styles.SlotsContainer>
-          {fetchAppointmentsRequestState.data?.map((appointment) => (
+        <Box mt="24px" maxWidth="200px" ml="auto">
+          <Select
+            options={filterOptions}
+            placeholder="Filter Appointments"
+            onChange={handleChangeFilter}
+            defaultValue={{
+              label: APPOINTMENTS_FILTER.ALL,
+              value: APPOINTMENTS_FILTER.ALL,
+            }}
+          />
+        </Box>
+        <Styles.AppointmentsContainer>
+          {filteredAppointments.map((appointment) => (
             <AppointmentDetailsCard
               key={appointment}
               appointment={appointment}
@@ -75,7 +148,7 @@ const DashboardView = () => {
               onUpdateAppointment={updateAppointment}
             />
           ))}
-        </Styles.SlotsContainer>
+        </Styles.AppointmentsContainer>
       </Styles.Container>
     </Styles.Root>
   );

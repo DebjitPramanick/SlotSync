@@ -22,6 +22,7 @@ export const PageHeaderContainer = styled(Flex)`
 
   ${mediaQueryMobile} {
     flex-direction: column;
+    row-gap: 16px;
   }
 `;
 
@@ -36,6 +37,6 @@ export const PageDescription = styled(Text)`
   color: ${colors.TEXT_NEUTRAL_WEAK};
 `;
 
-export const SlotsContainer = styled(Box)`
+export const AppointmentsContainer = styled(Box)`
   margin-top: 24px;
 `;

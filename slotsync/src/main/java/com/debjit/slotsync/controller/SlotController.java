@@ -14,9 +14,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.debjit.slotsync.dto.AppointmentDTO;
 import com.debjit.slotsync.dto.ResponseWithMessageDTO;
 import com.debjit.slotsync.dto.SlotDTO;
+import com.debjit.slotsync.dto.AppointmentDTO.ResponseAppointmentDTO;
 import com.debjit.slotsync.enums.SlotSequence;
 import com.debjit.slotsync.service.AppointmentService;
 import com.debjit.slotsync.service.SlotService;
@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 @RestController
 @RequestMapping(path = "/api")
-@CrossOrigin(origins = "http://localhost:8081/", allowCredentials = "true")
+@CrossOrigin(origins = "http://localhost:8081", allowCredentials = "true")
 public class SlotController {
 
     @Autowired
@@ -42,10 +42,10 @@ public class SlotController {
             @PathVariable(name = "userId") String userId) {
         try {
             Date scheduledOn = new SimpleDateFormat("yyyy-MM-dd").parse(date);
-            List<AppointmentDTO> alreadyBookedAppointments = appointmentService
+            List<ResponseAppointmentDTO> alreadyBookedAppointments = appointmentService
                     .getAppointmentsByScheduledDate(userId, scheduledOn);
             List<SlotSequence> sequencesToIgnore = new ArrayList<>();
-            for (AppointmentDTO appo : alreadyBookedAppointments) {
+            for (ResponseAppointmentDTO appo : alreadyBookedAppointments) {
                 sequencesToIgnore.add(appo.getSlot().getSequence());
             }
             List<SlotDTO> slots = slotService.generateSlots(sequencesToIgnore, scheduledOn);

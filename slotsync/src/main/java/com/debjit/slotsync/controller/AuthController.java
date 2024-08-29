@@ -25,7 +25,7 @@ import com.debjit.slotsync.service.AuthService.JwtUtils;
 
 @RestController
 @RequestMapping(path = "/api")
-@CrossOrigin(origins = "http://localhost:8081/", allowCredentials = "true")
+@CrossOrigin(origins = "http://localhost:8081", allowCredentials = "true")
 public class AuthController {
     @Autowired
     UserService userService;

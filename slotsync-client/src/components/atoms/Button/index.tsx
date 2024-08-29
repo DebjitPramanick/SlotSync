@@ -1,5 +1,5 @@
 import React, { ForwardedRef, forwardRef } from "react";
-import { Root } from "./index.styled";
+import { IconWrapper, Root } from "./index.styled";
 import { ClipLoader } from "react-spinners";
 import { UnstyledButtonProps } from "./UnstyledButton";
 import Box from "../Box";
@@ -66,14 +66,21 @@ const Button = forwardRef(
     props: IButtonProps & React.ButtonHTMLAttributes<HTMLButtonElement>,
     ref: ForwardedRef<HTMLButtonElement>
   ) => {
-    const { size = SIZES.MEDIUM, loading, text, ...rest } = props;
+    const { size = SIZES.MEDIUM, loading, text, icon, ...rest } = props;
     const height = getButtonHeight(size);
     const horizontalPadding = getBtnHorizontalPadding(size);
     const fontSize = getFontSize(size);
     const loaderSize = getLoaderSize(size);
     const borderRadius = height / 2;
 
+    let content;
     let loadingNode;
+
+    if (text) {
+      content = text;
+    } else if (icon) {
+      content = <IconWrapper>{icon}</IconWrapper>;
+    }
 
     if (loading) {
       loadingNode = (
@@ -93,7 +100,7 @@ const Button = forwardRef(
         ref={ref}
       >
         {loadingNode}
-        {text}
+        {content}
       </Root>
     );
   }

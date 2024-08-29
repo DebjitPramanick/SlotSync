@@ -98,11 +98,12 @@ export const TagsContainer = styled(Flex)`
   }
 `;
 
-export const Tag = styled(Text)`
-  font-size: 14px;
+export const Tag = styled(Text)<{ bg: string }>`
+  width: fit-content;
+  font-size: 12px;
   padding: 4px 8px;
   border-radius: 4px;
-  background-color: ${colors.BG_NEUTRAL_WEAK};
+  background-color: ${({ bg }) => (bg ? bg : colors.BG_NEUTRAL_WEAK)};
   color: ${colors.TEXT_NEUTRAL_NORMAL};
   white-space: nowrap;
 `;

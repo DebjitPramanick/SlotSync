@@ -54,6 +54,10 @@ export const MidSection = styled(Box)`
   flex: 1;
   max-width: 400px;
   padding: 16px;
+
+  ${mediaQueryMobileOrTablet} {
+    max-width: unset;
+  }
 `;
 
 export const RightSection = styled(Box)`
@@ -61,6 +65,10 @@ export const RightSection = styled(Box)`
   max-width: 300px;
   border-left: 1px solid ${colors.BORDER_NEUTRAL_WEAK};
   padding: 16px;
+
+  ${mediaQueryMobileOrTablet} {
+    max-width: unset;
+  }
 `;
 
 export const IconWrapper = styled(Box)`
@@ -104,6 +112,7 @@ export const CalendarContainer = styled(Flex)`
 
   .react-calendar {
     /* width: 100% !important; */
+    width: 100%;
     border: 0;
   }
 
@@ -114,8 +123,14 @@ export const CalendarContainer = styled(Flex)`
   .react-calendar__tile {
     width: 50px;
     height: 50px;
-    border-radius: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     margin: 4px 0;
+  }
+
+  .react-calendar__tile:disabled {
+    background-color: transparent !important;
   }
 
   .react-calendar__tile--active {
@@ -140,6 +155,10 @@ export const CalendarContainer = styled(Flex)`
 
   .react-calendar__month-view__days__day--weekend {
     color: #1f1b13 !important;
+  }
+
+  .react-calendar__month-view__days__day--weekend:disabled {
+    color: #ababab !important;
   }
 
   .react-calendar__tile--now {
@@ -187,4 +206,24 @@ export const Slot = styled(Text)<{ selected?: boolean }>`
           color: ${colors.TEXT_INVERTED};
         `
       : null}
+`;
+
+export const SuccessViewContainer = styled(Flex)`
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  padding: 32px 16px;
+`;
+
+export const SuccessText = styled(Text)`
+  font-size: 32px;
+  font-weight: 600;
+  text-align: center;
+`;
+
+export const AppointmentInfo = styled(Text)`
+  font-size: 16px;
+  line-height: 24px;
+  color: ${colors.TEXT_NEUTRAL_WEAK};
+  text-align: center;
 `;

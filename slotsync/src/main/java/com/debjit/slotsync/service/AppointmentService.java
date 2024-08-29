@@ -7,9 +7,12 @@ import java.util.GregorianCalendar;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
-import com.debjit.slotsync.dto.AppointmentDTO;
+import com.debjit.slotsync.dto.UserDTO;
+import com.debjit.slotsync.dto.AppointmentDTO.RequestAppointmentDTO;
+import com.debjit.slotsync.dto.AppointmentDTO.ResponseAppointmentDTO;
 import com.debjit.slotsync.enums.AppointmentStatus;
 import com.debjit.slotsync.model.Appointment;
 import com.debjit.slotsync.repository.AppointmentRepository;
@@ -19,7 +22,10 @@ public class AppointmentService {
     @Autowired
     AppointmentRepository appointmentRepository;
 
-    public AppointmentDTO getAppointmentById(String id) {
+    @Autowired
+    UserService userService;
+
+    public ResponseAppointmentDTO getAppointmentById(String id) {
         try {
             Appointment appointment = appointmentRepository.findById(id).get();
             if (appointment == null) {
@@ -31,10 +37,11 @@ public class AppointmentService {
         }
     }
 
-    public List<AppointmentDTO> getAppointmentsCreatedByUser(String userId) {
+    public List<ResponseAppointmentDTO> getAppointmentsCreatedByUser(String userId) {
         try {
-            List<Appointment> appointments = appointmentRepository.findByCreatedBy(userId);
-            List<AppointmentDTO> results = new ArrayList<>();
+            List<Appointment> appointments = appointmentRepository.findByCreatedBy(userId,
+                    Sort.by(Sort.Direction.DESC, "scheduledOn"));
+            List<ResponseAppointmentDTO> results = new ArrayList<>();
             for (Appointment appo : appointments) {
                 results.add(convertToAppointmentDTO(appo));
             }
@@ -44,10 +51,11 @@ public class AppointmentService {
         }
     }
 
-    public List<AppointmentDTO> getAppointmentsByParticipant(String userId) {
+    public List<ResponseAppointmentDTO> getAppointmentsByParticipant(String userId) {
         try {
-            List<Appointment> appointments = appointmentRepository.findByParticipantId(userId);
-            List<AppointmentDTO> results = new ArrayList<>();
+            List<Appointment> appointments = appointmentRepository.findByParticipantId(userId,
+                    Sort.by(Sort.Direction.DESC, "scheduledOn"));
+            List<ResponseAppointmentDTO> results = new ArrayList<>();
             for (Appointment appo : appointments) {
                 results.add(convertToAppointmentDTO(appo));
             }
@@ -57,7 +65,7 @@ public class AppointmentService {
         }
     }
 
-    public List<AppointmentDTO> getAppointmentsByScheduledDate(String userId, Date scheduledOn) {
+    public List<ResponseAppointmentDTO> getAppointmentsByScheduledDate(String userId, Date scheduledOn) {
         try {
             Date[] dateRanges = new Date[2];
             dateRanges[0] = scheduledOn;
@@ -66,8 +74,8 @@ public class AppointmentService {
             endDate.add(Calendar.DAY_OF_MONTH, 1);
             dateRanges[1] = endDate.getTime();
             List<Appointment> appointments = appointmentRepository.findByUserIdWithinDateRange(userId, dateRanges[0],
-                    dateRanges[1]);
-            List<AppointmentDTO> results = new ArrayList<>();
+                    dateRanges[1], Sort.by(Sort.Direction.DESC, "scheduledOn"));
+            List<ResponseAppointmentDTO> results = new ArrayList<>();
             for (Appointment appo : appointments) {
                 results.add(convertToAppointmentDTO(appo));
             }
@@ -77,13 +85,13 @@ public class AppointmentService {
         }
     }
 
-    public AppointmentDTO createAppointment(AppointmentDTO appointmentDTO) throws Exception {
+    public ResponseAppointmentDTO createAppointment(RequestAppointmentDTO appointmentDTO) throws Exception {
         try {
             Appointment appointment = new Appointment();
             appointment.setName(appointmentDTO.getName());
             appointment.setSlot(appointmentDTO.getSlot());
             appointment.setScheduledOn(appointmentDTO.getScheduledOn());
-            appointment.setCreatedBy(appointmentDTO.getCreatedBy());
+            appointment.setCreatedBy(appointmentDTO.getCreatedById());
             appointment.setParticipantId(appointmentDTO.getParticipantId());
             appointment.setStatus(AppointmentStatus.SCHEDULED);
             appointment.setCreatedAt(new Date(System.currentTimeMillis()));
@@ -95,16 +103,26 @@ public class AppointmentService {
         }
     }
 
-    public AppointmentDTO updateAppointment(AppointmentDTO appointmentDTO) throws Exception {
+    public ResponseAppointmentDTO updateAppointment(RequestAppointmentDTO appointmentDTO) throws Exception {
         try {
-            Appointment appointment = new Appointment();
-            appointment.setName(appointmentDTO.getName());
-            appointment.setSlot(appointmentDTO.getSlot());
-            appointment.setScheduledOn(appointmentDTO.getScheduledOn());
-            appointment.setCreatedBy(appointmentDTO.getCreatedBy());
-            appointment.setParticipantId(appointmentDTO.getParticipantId());
-            appointment.setStatus(AppointmentStatus.SCHEDULED);
-            appointment.setCreatedAt(new Date(System.currentTimeMillis()));
+            Appointment appointment = appointmentRepository.findById(appointmentDTO.getId()).get();
+            appointment.setId(appointmentDTO.getId());
+            if (appointmentDTO.getName() != null) {
+                appointment.setName(appointmentDTO.getName());
+            }
+            if (appointmentDTO.getSlot() != null) {
+                appointment.setSlot(appointmentDTO.getSlot());
+            }
+            if (appointmentDTO.getSlot() != null) {
+                appointment.setSlot(appointmentDTO.getSlot());
+            }
+            if (appointmentDTO.getScheduledOn() != null) {
+                appointment.setScheduledOn(appointmentDTO.getScheduledOn());
+            }
+            if (appointmentDTO.getStatus() != null) {
+                appointment.setStatus(appointmentDTO.getStatus());
+            }
+            appointment.setUpdatedAt(new Date(System.currentTimeMillis()));
 
             appointment = appointmentRepository.save(appointment);
             return convertToAppointmentDTO(appointment);
@@ -113,14 +131,16 @@ public class AppointmentService {
         }
     }
 
-    private AppointmentDTO convertToAppointmentDTO(Appointment appointment) {
-        AppointmentDTO appointmentDTO = new AppointmentDTO();
+    private ResponseAppointmentDTO convertToAppointmentDTO(Appointment appointment) {
+        ResponseAppointmentDTO appointmentDTO = new ResponseAppointmentDTO();
+        UserDTO createdByUser = userService.getUserById(appointment.getCreatedBy());
+        UserDTO participant = userService.getUserById(appointment.getParticipantId());
         appointmentDTO.setId(appointment.getId());
         appointmentDTO.setName(appointment.getName());
         appointmentDTO.setScheduledOn(appointment.getScheduledOn());
         appointmentDTO.setSlot(appointment.getSlot());
-        appointmentDTO.setCreatedBy(appointment.getCreatedBy());
-        appointmentDTO.setParticipantId(appointment.getParticipantId());
+        appointmentDTO.setCreatedBy(createdByUser);
+        appointmentDTO.setParticipant(participant);
         appointmentDTO.setStatus(appointment.getStatus());
         appointmentDTO.setUpdatedAt(appointment.getUpdatedAt());
         appointmentDTO.setCreatedAt(appointment.getCreatedAt());
